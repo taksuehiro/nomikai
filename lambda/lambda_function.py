@@ -4,7 +4,7 @@ import os
 from typing import Dict, List, Any
 
 bedrock = boto3.client('bedrock-runtime', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
-MODEL_ID = 'us.anthropic.claude-3-5-sonnet-20241022-v2:0'
+MODEL_ID = 'anthropic.claude-3-5-sonnet-20241022-v2:0'
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
