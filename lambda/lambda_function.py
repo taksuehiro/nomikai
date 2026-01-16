@@ -3,7 +3,7 @@ import boto3
 import os
 from typing import Dict, List, Any
 
-bedrock = boto3.client('bedrock-runtime', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
+bedrock = boto3.client('bedrock-runtime', region_name=os.environ.get('AWS_REGION', 'ap-northeast-1'))
 MODEL_ID = 'anthropic.claude-3-5-sonnet-20240620-v1:0'
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -74,7 +74,7 @@ def build_prompt(participants: List[Dict], constraints: List[str]) -> str:
     ])
     
     constraints_text = "\n".join([
-        f"- {c}" for c in constraints
+        f"{i+1}. {c}" for i, c in enumerate(constraints)
     ]) if constraints else "- 制約条件なし"
     
     prompt = f"""あなたは飲み会の席順を最適化するAIです。
@@ -83,24 +83,40 @@ def build_prompt(participants: List[Dict], constraints: List[str]) -> str:
 {participants_text}
 
 ## 席のレイアウト
-席1-4が上座側、席5-8が下座・出入口側です。
-席の配置:
-[1] [2] [3] [4]
-[5] [6] [7] [8]
-隣り合う席: 1-2, 2-3, 3-4, 5-6, 6-7, 7-8
-向かい合う席: 1-5, 2-6, 3-7, 4-8
+```
+  [1] [2] [3] [4]
+  ═══テーブル═══
+  [5] [6] [7] [8]
+      ↓出入口
+```
+
+### 席の位置関係
+- 隣り合う席: 1-2, 2-3, 3-4, 5-6, 6-7, 7-8
+- 向かい合う席（真正面）: 1と5, 2と6, 3と7, 4と8
+- 席5-8が出入口側
 
 ## 制約条件
 {constraints_text}
+
+## 用語の解釈
+- 「隣にする」「隣に配置」= 隣り合う席（上記参照）に配置する
+- 「真正面を避ける」= 向かい合う席に配置しない
+- 「出口側に配置」= 席5-8のいずれかに配置（席8が最も出入口に近い）
+- 「近くに配置」= 隣り合う席、または向かい合う席に配置
+
+## 重要
+- 上記の制約条件のみに基づいて配置してください
+- 制約条件に記載されていないこと（一般的なマナー等）は考慮不要です
+- すべての制約を満たせない場合は、可能な限り多くの制約を満たし、満たせなかった制約とその理由をreasoningに記載してください
 
 ## 出力形式
 以下のJSON形式で出力してください:
 {{
   "seating": [{{"seat": 席番号, "name": "名前"}}, ...],
-  "reasoning": "配置の理由を日本語で説明"
+  "reasoning": "各制約条件をどう満たしたか具体的に説明"
 }}
 
-すべての参加者を席1-8に配置してください。JSONのみを出力し、余分な説明は不要です。"""
+JSONのみを出力してください。"""
 
     return prompt
 
