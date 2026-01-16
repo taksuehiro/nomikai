@@ -50,11 +50,6 @@ export default function SeatingLayout({
 
   const isOptimized = displaySeating.length > 0
 
-  // 未配置の参加者リスト
-  const unassignedParticipants = participants.filter(
-    p => !displaySeating.find(s => s.name === p.name)
-  )
-
   return (
     <div className="bg-dark-card rounded-lg p-6 border border-gray-800">
       <h2 className="text-2xl font-bold mb-4 text-accent-cyan">
