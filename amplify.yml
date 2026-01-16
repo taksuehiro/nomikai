@@ -1,0 +1,19 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - cd frontend
+        - npm install
+    build:
+      commands:
+        - cd frontend
+        - echo "VITE_API_ENDPOINT=https://zqnigs3s9j.execute-api.ap-northeast-1.amazonaws.com/prod/optimize" > .env
+        - npm run build
+  artifacts:
+    baseDirectory: frontend/dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - frontend/node_modules/**/*
