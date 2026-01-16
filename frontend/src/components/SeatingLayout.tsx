@@ -1,7 +1,8 @@
+import { useState, useEffect } from 'react'
 import { Participant, SeatingAssignment } from '../App'
 
 interface SeatingLayoutProps {
-  participants: Participant[] // 将来の拡張用に保持
+  participants: Participant[]
   seating: SeatingAssignment[]
   onOptimize: () => void
   isLoading: boolean
@@ -13,17 +14,46 @@ const SEAT_LAYOUT = [
 ]
 
 export default function SeatingLayout({
-  participants: _participants, // 未使用だが将来の拡張用に保持
+  participants,
   seating,
   onOptimize,
   isLoading,
 }: SeatingLayoutProps) {
+  const [displaySeating, setDisplaySeating] = useState<SeatingAssignment[]>([])
+  const [animatingNames, setAnimatingNames] = useState<Set<string>>(new Set())
+
+  // 最適化結果が来たらアニメーション開始
+  useEffect(() => {
+    if (seating.length > 0 && seating !== displaySeating) {
+      // まず全席クリア
+      setDisplaySeating([])
+      setAnimatingNames(new Set(participants.map(p => p.name)))
+      
+      // 順番に席に配置していく
+      seating.forEach((assignment, index) => {
+        setTimeout(() => {
+          setDisplaySeating(prev => [...prev, assignment])
+          setAnimatingNames(prev => {
+            const next = new Set(prev)
+            next.delete(assignment.name)
+            return next
+          })
+        }, 300 * (index + 1))
+      })
+    }
+  }, [seating])
+
   const getSeatName = (seatNumber: number): string => {
-    const assignment = seating.find(s => s.seat === seatNumber)
+    const assignment = displaySeating.find(s => s.seat === seatNumber)
     return assignment?.name || ''
   }
 
-  const isOptimized = seating.length > 0
+  const isOptimized = displaySeating.length > 0
+
+  // 未配置の参加者リスト
+  const unassignedParticipants = participants.filter(
+    p => !displaySeating.find(s => s.name === p.name)
+  )
 
   return (
     <div className="bg-dark-card rounded-lg p-6 border border-gray-800">
@@ -31,7 +61,7 @@ export default function SeatingLayout({
         テーブル配置
       </h2>
       
-      <div className="mb-6">
+      <div className="mb-4">
         <div className="text-center mb-2">
           <span className="text-sm text-gray-400">【上座】</span>
         </div>
@@ -43,7 +73,7 @@ export default function SeatingLayout({
             return (
               <div
                 key={seat}
-                className={`h-20 rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-all ${
+                className={`h-20 rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                   isHighlighted
                     ? 'bg-accent-cyan/20 border-accent-cyan text-accent-cyan'
                     : 'bg-gray-800 border-gray-700 text-gray-500'
@@ -57,12 +87,12 @@ export default function SeatingLayout({
             )
           })}
         </div>
-
+        
         <div className="text-center my-2">
           <div className="h-px bg-gray-700 mx-4"></div>
           <span className="text-xs text-gray-500">テーブル</span>
         </div>
-
+        
         <div className="grid grid-cols-4 gap-3 mt-2">
           {SEAT_LAYOUT[1].map(seat => {
             const name = getSeatName(seat)
@@ -70,7 +100,7 @@ export default function SeatingLayout({
             return (
               <div
                 key={seat}
-                className={`h-20 rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-all ${
+                className={`h-20 rounded-lg border-2 flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                   isHighlighted
                     ? 'bg-accent-cyan/20 border-accent-cyan text-accent-cyan'
                     : 'bg-gray-800 border-gray-700 text-gray-500'
@@ -84,9 +114,34 @@ export default function SeatingLayout({
             )
           })}
         </div>
-
+        
         <div className="text-center mt-2">
           <span className="text-sm text-gray-400">【下座・出入口側】</span>
+        </div>
+      </div>
+
+      {/* 出席者欄 */}
+      <div className="mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
+        <h3 className="text-sm font-medium text-gray-400 mb-2">出席者</h3>
+        <div className="flex flex-wrap gap-2">
+          {participants.map(p => {
+            const isAssigned = displaySeating.find(s => s.name === p.name)
+            const isAnimating = animatingNames.has(p.name)
+            return (
+              <div
+                key={p.id}
+                className={`px-2 py-1 rounded text-xs transition-all duration-300 ${
+                  isAssigned
+                    ? 'opacity-30 bg-gray-700 text-gray-500'
+                    : isAnimating && isLoading
+                    ? 'bg-accent-cyan/30 text-accent-cyan animate-pulse'
+                    : 'bg-accent-orange/20 text-accent-orange border border-accent-orange/50'
+                }`}
+              >
+                {p.name}（{p.role}, {p.age}歳）
+              </div>
+            )
+          })}
         </div>
       </div>
 
