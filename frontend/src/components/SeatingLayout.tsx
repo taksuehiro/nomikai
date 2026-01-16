@@ -1,7 +1,7 @@
 import { Participant, SeatingAssignment } from '../App'
 
 interface SeatingLayoutProps {
-  participants: Participant[]
+  participants: Participant[] // 将来の拡張用に保持
   seating: SeatingAssignment[]
   onOptimize: () => void
   isLoading: boolean
@@ -13,7 +13,7 @@ const SEAT_LAYOUT = [
 ]
 
 export default function SeatingLayout({
-  participants,
+  participants: _participants, // 未使用だが将来の拡張用に保持
   seating,
   onOptimize,
   isLoading,
