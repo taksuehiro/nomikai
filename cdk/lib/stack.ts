@@ -25,7 +25,7 @@ export class NomikaiOptimizerStack extends cdk.Stack {
           'bedrock:InvokeModel',
         ],
         resources: [
-          `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-3-5-sonnet-20241022-v2:0`,
+          `arn:aws:bedrock:${this.region}::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0`,
         ],
       })
     );
