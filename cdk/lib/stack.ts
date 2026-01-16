@@ -15,9 +15,6 @@ export class NomikaiOptimizerStack extends cdk.Stack {
       code: lambda.Code.fromAsset('../lambda'),
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
-      environment: {
-        AWS_REGION: this.region,
-      },
     });
 
     // Bedrockへのアクセス権限を付与
